@@ -49,11 +49,11 @@ cmake_ninja_workdir = /Users/avipatel/CLionProjects/Order_Book/cmake-build-debug
 
 build cmake_object_order_depends_target_Order_Book: phony || .
 
-build CMakeFiles/Order_Book.dir/main.cpp.o: CXX_COMPILER__Order_Book_unscanned_Debug /Users/avipatel/CLionProjects/Order_Book/main.cpp || cmake_object_order_depends_target_Order_Book
-  DEP_FILE = CMakeFiles/Order_Book.dir/main.cpp.o.d
+build CMakeFiles/Order_Book.dir/src/main.cpp.o: CXX_COMPILER__Order_Book_unscanned_Debug /Users/avipatel/CLionProjects/Order_Book/src/main.cpp || cmake_object_order_depends_target_Order_Book
+  DEP_FILE = CMakeFiles/Order_Book.dir/src/main.cpp.o.d
   FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk -fcolor-diagnostics
   OBJECT_DIR = CMakeFiles/Order_Book.dir
-  OBJECT_FILE_DIR = CMakeFiles/Order_Book.dir
+  OBJECT_FILE_DIR = CMakeFiles/Order_Book.dir/src
 
 build CMakeFiles/Order_Book.dir/data/generate_data.cpp.o: CXX_COMPILER__Order_Book_unscanned_Debug /Users/avipatel/CLionProjects/Order_Book/data/generate_data.cpp || cmake_object_order_depends_target_Order_Book
   DEP_FILE = CMakeFiles/Order_Book.dir/data/generate_data.cpp.o.d
@@ -61,17 +61,17 @@ build CMakeFiles/Order_Book.dir/data/generate_data.cpp.o: CXX_COMPILER__Order_Bo
   OBJECT_DIR = CMakeFiles/Order_Book.dir
   OBJECT_FILE_DIR = CMakeFiles/Order_Book.dir/data
 
-build CMakeFiles/Order_Book.dir/include/orderbook/RBTree.cpp.o: CXX_COMPILER__Order_Book_unscanned_Debug /Users/avipatel/CLionProjects/Order_Book/include/orderbook/RBTree.cpp || cmake_object_order_depends_target_Order_Book
-  DEP_FILE = CMakeFiles/Order_Book.dir/include/orderbook/RBTree.cpp.o.d
+build CMakeFiles/Order_Book.dir/src/orderbook/RBTree.cpp.o: CXX_COMPILER__Order_Book_unscanned_Debug /Users/avipatel/CLionProjects/Order_Book/src/orderbook/RBTree.cpp || cmake_object_order_depends_target_Order_Book
+  DEP_FILE = CMakeFiles/Order_Book.dir/src/orderbook/RBTree.cpp.o.d
   FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk -fcolor-diagnostics
   OBJECT_DIR = CMakeFiles/Order_Book.dir
-  OBJECT_FILE_DIR = CMakeFiles/Order_Book.dir/include/orderbook
+  OBJECT_FILE_DIR = CMakeFiles/Order_Book.dir/src/orderbook
 
-build CMakeFiles/Order_Book.dir/include/orderbook/SkipList.cpp.o: CXX_COMPILER__Order_Book_unscanned_Debug /Users/avipatel/CLionProjects/Order_Book/include/orderbook/SkipList.cpp || cmake_object_order_depends_target_Order_Book
-  DEP_FILE = CMakeFiles/Order_Book.dir/include/orderbook/SkipList.cpp.o.d
+build CMakeFiles/Order_Book.dir/src/orderbook/SkipList.cpp.o: CXX_COMPILER__Order_Book_unscanned_Debug /Users/avipatel/CLionProjects/Order_Book/src/orderbook/SkipList.cpp || cmake_object_order_depends_target_Order_Book
+  DEP_FILE = CMakeFiles/Order_Book.dir/src/orderbook/SkipList.cpp.o.d
   FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk -fcolor-diagnostics
   OBJECT_DIR = CMakeFiles/Order_Book.dir
-  OBJECT_FILE_DIR = CMakeFiles/Order_Book.dir/include/orderbook
+  OBJECT_FILE_DIR = CMakeFiles/Order_Book.dir/src/orderbook
 
 
 # =============================================================================
@@ -81,7 +81,7 @@ build CMakeFiles/Order_Book.dir/include/orderbook/SkipList.cpp.o: CXX_COMPILER__
 #############################################
 # Link the executable Order_Book
 
-build Order_Book: CXX_EXECUTABLE_LINKER__Order_Book_Debug CMakeFiles/Order_Book.dir/main.cpp.o CMakeFiles/Order_Book.dir/data/generate_data.cpp.o CMakeFiles/Order_Book.dir/include/orderbook/RBTree.cpp.o CMakeFiles/Order_Book.dir/include/orderbook/SkipList.cpp.o
+build Order_Book: CXX_EXECUTABLE_LINKER__Order_Book_Debug CMakeFiles/Order_Book.dir/src/main.cpp.o CMakeFiles/Order_Book.dir/data/generate_data.cpp.o CMakeFiles/Order_Book.dir/src/orderbook/RBTree.cpp.o CMakeFiles/Order_Book.dir/src/orderbook/SkipList.cpp.o
   FLAGS = -g -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk
   OBJECT_DIR = CMakeFiles/Order_Book.dir
   POST_BUILD = :

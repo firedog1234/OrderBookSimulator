@@ -13,8 +13,9 @@ struct RBNode {
     RBNode *parent;
     RBNode *left;
     RBNode *right;
+    PriceLevel level;
 
-    explicit RBNode(const Order &order) : order(order), parent(nullptr), left(nullptr), right(nullptr) {}
+    explicit RBNode(const Order &order) : order(order), parent(nullptr), left(nullptr), right(nullptr), level() {}
 };
 class RBTree {
 private:

@@ -1,19 +1,34 @@
 #include <iostream>
+#include <iomanip>
+#include "../data/generate_data.cpp"
 
 // TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 int main() {
-    // TIP Press <shortcut actionId="RenameElement"/> when your caret is at the
-    // <b>lang</b> variable name to see how CLion can help you rename it.
-    auto lang = "C++";
-    std::cout << "Hello and welcome to " << lang << "!\n";
+    auto generator = OrderGenerator(50.00, 100.00, 10, 1000);
+    std::vector<Order> orders = generator.generateOrders(10000);
 
-    for (int i = 1; i <= 5; i++) {
-        // TIP Press <shortcut actionId="Debug"/> to start debugging your code.
-        // We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/>
-        // breakpoint for you, but you can always add more by pressing
-        // <shortcut actionId="ToggleLineBreakpoint"/>.
-        std::cout << "i = " << i << std::endl;
+    // Header
+    std::cout << std::left
+              << std::setw(15) << "Timestamp"
+              << std::setw(10) << "Order ID"
+              << std::setw(10) << "Price"
+              << std::setw(10) << "Quantity"
+              << std::setw(8) << "Side"
+              << std::setw(10) << "Type" << std::endl;
+    std::cout << std::string(63, '-') << std::endl;
+
+    // Data rows
+    for (const auto& order : orders) {
+        std::cout << std::left
+                  << std::setw(15) << order.timeStamp
+                  << std::setw(10) << order.id
+                  << std::setw(10) << std::fixed << std::setprecision(2) << order.price
+                  << std::setw(10) << order.quantity
+                  << std::setw(8) << (order.side == Side::ASK ? "ASK" : "BID")
+                  << std::setw(10) << (order.type == OrderType::ADD ? "ADD" :
+                                       order.type == OrderType::MODIFY ? "MODIFY" : "CANCEL")
+                  << std::endl;
     }
 
     return 0;

@@ -23,7 +23,7 @@ private:
     std::vector<std::unique_ptr<RBNode>> node_pool;
     void rotate_left(RBNode* node);
     void rotate_right(RBNode* node);
-    constexpr uint32_t SIZE = 100'000;
+    static constexpr uint32_t SIZE = 100'000;
 
 public:
     RBTree();

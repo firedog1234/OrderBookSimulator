@@ -5,6 +5,8 @@
 #pragma once
 #include <memory>
 #include <vector>
+#include <unordered_map>
+
 #include "../common/types.h"
 
 
@@ -18,11 +20,13 @@ struct RBNode {
     explicit RBNode(const Order &order) : order(order), parent(nullptr), left(nullptr), right(nullptr), level() {}
 };
 class RBTree {
+
 private:
     RBNode *root = nullptr;
     std::vector<std::unique_ptr<RBNode>> node_pool;
     void rotate_left(RBNode* node);
     void rotate_right(RBNode* node);
+    std::unordered_map<uint32_t, Order*> lookUp;
     static constexpr uint32_t SIZE = 100'000;
 
 public:

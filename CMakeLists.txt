@@ -14,4 +14,6 @@ add_executable(Order_Book src/main.cpp
         include/orderbook/RBTree.h
         src/orderbook/SkipList.cpp
         include/orderbook/SkipList.h
-        include/utils/benchmark.h)
+        include/utils/benchmark.h
+        src/orderbook/OrderBookRB.cpp
+        include/orderbook/OrderBookRB.h)

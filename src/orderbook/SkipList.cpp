@@ -3,130 +3,133 @@
 //
 
 #include "../../include/orderbook/SkipList.h"
+#include <cmath>
+#include <iostream>
 
-skipList:: skipList()
+// Node constructor
+SkipList::Node::Node(int level, double k, const PriceLevel &v)
+    : key(k), value(v), forward(level, nullptr) {}
+
+// SkipList constructor
+SkipList::SkipList(int maxLevel, double p)
+    : head_(nullptr),
+      maxLevel_(maxLevel),
+      p_(p),
+      level_(0),
+      node_count_(0),
+      rng_(std::random_device{}())
 {
-    head = new Node(0, maxNumberOfLevel);    // Initializing the skip list with the max number of levels
-    Level = 0;                               // At start the level is 0
+    // Create header node with a minimal key
+    head_ = new Node(maxLevel_, -std::numeric_limits<double>::infinity(), PriceLevel{});
 }
 
-void skipList::insert(int data)
-{
-    int newLevel = 0; // Deciding the level of inserting node on the basis of coin toss
-    while (newLevel < maxNumberOfLevel && (std::rand() % 2) == 1) // here rand()%2 is doing the coin toss
-    {
-        newLevel++;
-    } // Resizing the size of the levels to make place for the inserting value
-    if (Level < newLevel)
-    {
-        head->next.resize(newLevel + 1, nullptr);
-        Level = newLevel;
-    }
-    Node* current = head; // pointer to the head to traverse through the skip list
-    std::vector<Node*> Update(Level + 1, nullptr); // To store the update node at each level
-
-    // Loop over the levels upto which we want the value to be inserted
-    for (int i = Level; i >= 0; i--)
-    {// Finding the place for the inserting value
-        while (current->next[i] and current->next[i]->data < data)
-        {
-            current = current->next[i];
-        }
-        // Updating the level accordingly
-        Update[i] = current;
-    }
-    current = current->next[0];   // Moves the current to the next node at level 0
-    if (current == nullptr || current->data != data) // if the current is null, then it does not exit. we need to insert the value
-    {
-        Node* newNode = new Node(data, Level);
-        for (int i = 0; i <= newLevel; i++)
-        {
-            newNode->next[i] = Update[i]->next[i];
-            Update[i]->next[i] = newNode;  // To insert the value at each level
-        }
-        std::cout << "Element " << data << " inserted successfully.\n";
-    }
-    else
-    {
-        std::cout << "Element " << data << " already exists.\n";  // Incase if value already exists
-    }
+// Destructor - free all nodes
+SkipList::~SkipList() {
+    freeList();
+    delete head_;
+    head_ = nullptr;
 }
 
-void skipList::remove(int data)
-{
-    Node* current = head; // start by setting a current pointer to the head node
-    std::vector<Node*> Update(Level + 1, nullptr); // Create an update vector to store the updated node at each level, Remember only those nodes will be updated where the value to be deleted is present.
-    for (int i = Level; i >= 0; i--)
-    {
-        while (current->next[i] and current->next[i]->data < data)
-        {
-            current = current->next[i];
-        }
-        Update[i] = current;         // Update array is keeping the track, where the changes should be made, after deleting the node.
+void SkipList::freeList() {
+    Node *cur = head_->forward[0];
+    while (cur) {
+        Node *next = cur->forward[0];
+        delete cur;
+        cur = next;
     }
-    current = current->next[0];     // Set the current pointer to the next node at level 0.
-    if (current != nullptr && current->data == data) // If the value is present, then delete the value
-    {
-        for (int i = 0; i <= Level; i++)      // Deleting the value from each level
-        {
-            // Setting the pointers
-            if (Update[i]->next[i] != current)
-            {
-                break;
+    node_count_ = 0;
+    level_ = 0;
+}
+
+// Random level generator (geometric distribution)
+int SkipList::randomLevel() const{
+    int lvl = 1;
+    std::uniform_real_distribution<double> dist(0.0, 1.0);
+    while (dist(rng_) < p_ && lvl < maxLevel_) ++lvl;
+    return lvl;
+}
+
+bool SkipList::insert(const PriceLevel &pl) {
+    std::vector<Node*> update(maxLevel_, nullptr);
+    Node *x = head_;
+
+    // find position for insert
+    for (int i = level_; i >= 0; --i) {
+        while (x->forward[i] && x->forward[i]->key < pl.priceLevel) {
+            x = x->forward[i];
+        }
+        update[i] = x;
+    }
+    x = x->forward[0];
+
+    if (x && x->key == pl.priceLevel) {
+        // replace existing price level's deque (or merge as needed)
+        x->value.Price = pl.Price;
+        return true;
+    } else {
+        int lvl = randomLevel();
+        if (lvl - 1 > level_) {
+            for (int i = level_ + 1; i < lvl; ++i) {
+                update[i] = head_;
             }
-            else
-            {
-                Update[i]->next[i] = current->next[i];
-            }
+            level_ = lvl - 1;
         }
-        delete current; // deleting the node
-        while (Level > 0 && head->next[Level] == nullptr)  // decrement the level variable incase there is not any value at that level
-        {
-            Level--;
-        }
-        std::cout << "Element " << data << " deleted successfully." << std::endl;
-    }
-    else // Incase the value does not exist
-    {
-        std::cout << "Element " << data << " not found." << std::endl;
-    }
-}
 
-bool skipList::search(int data) const
-{
-    Node* current = head;           // start by setting a current pointer to the head node to traverse through the skip list
-    for (int i = Level; i >= 0; i--) // Begin traversing from the top level and iteratively approaching the bottom of the skip list
-    {
-        while (current->next[i] and current->next[i]->data < data) // keep on moving forward if the value of the next node is less than the searching node otherwise move downward (handled by outer for loop)
-        {
-            current = current->next[i]; // moving forward
+        Node *newNode = new Node(lvl, pl.priceLevel, pl);
+        for (int i = 0; i < lvl; ++i) {
+            newNode->forward[i] = update[i]->forward[i];
+            update[i]->forward[i] = newNode;
         }
-    }
-    current = current->next[0]; // Move to the next of the node at level 0
-    if (current != nullptr && current->data == data) // if value is found
-    {
-        std::cout << "Element " << data << " found.\n";
+        ++node_count_;
         return true;
     }
-    else  // Incase value does not exist
-    {
-        std::cout << "Element " << data << " not found.\n";
-        return false;
-    }
 }
 
-void skipList::display() const
-{
-    std::cout << "skip List:" << std::endl;
-    for (int i = Level; i >= 0; i--) //
-    {
-        Node* current = head->next[i]; // Initializes the pointer to the first node of that level
-        std::cout << "Level " << i << ": ";
-        while (current != nullptr)       // Start displaying all the values present at that level
-        {
-            std::cout << current->data << " ";
-            current = current->next[i]; // Moving to the right of the node
+bool SkipList::remove(double price) {
+    std::vector<Node*> update(maxLevel_, nullptr);
+    Node *x = head_;
+
+    for (int i = level_; i >= 0; --i) {
+        while (x->forward[i] && x->forward[i]->key < price) {
+            x = x->forward[i];
         }
-        std::cout << std::endl;
+        update[i] = x;
     }
+    x = x->forward[0];
+
+    if (x && x->key == price) {
+        for (int i = 0; i <= level_; ++i) {
+            if (update[i]->forward[i] != x) break;
+            update[i]->forward[i] = x->forward[i];
+        }
+        delete x;
+        // decrease level if needed
+        while (level_ > 0 && head_->forward[level_] == nullptr) --level_;
+        --node_count_;
+        return true;
+    }
+    return false;
+}
+
+PriceLevel* SkipList::find(double price) const {
+    Node *x = head_;
+    for (int i = level_; i >= 0; --i) {
+        while (x->forward[i] && x->forward[i]->key < price) {
+            x = x->forward[i];
+        }
+    }
+    x = x->forward[0];
+    if (x && x->key == price) return &x->value;
+    return nullptr;
+}
+
+std::vector<PriceLevel> SkipList::topN(size_t n) const {
+    std::vector<PriceLevel> res;
+    Node *cur = head_->forward[0];
+    // collect in increasing price order (lowest to highest)
+    while (cur && res.size() < n) {
+        res.push_back(cur->value);
+        cur = cur->forward[0];
+    }
+    return res;
 }

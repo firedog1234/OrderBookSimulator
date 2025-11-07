@@ -3,32 +3,50 @@
 //
 
 #pragma once
+#include "../../include/common/types.h"   // for PriceLevel
 #include <vector>
 #include <iostream>
+#include <random>
+#include <memory>
+#include <limits>
 
-constexpr int maxNumberOfLevel = 5; // Maximum Level of the skip list
-
-class Node
-{
+class SkipList {
 public:
+    explicit SkipList(int maxLevel = 16, double p = 0.5);
+    ~SkipList();
 
-    int data;
-    std::vector<Node*> next; // To maintain the levels of the skip list
-    Node(int data, int Level) : data(data), next(Level + 1, nullptr) {} // declaring the data and the level of the node
-};
+    // Insert a price level. If a level at a price already exists, replace its Price deque.
+    // Returns true if inserted (or replaced).
+    bool insert(const PriceLevel &pl) ;
 
-class skipList
-{
+    // Remove price level by price. Returns true if removed.
+    bool remove(double price);
+
+    // Return pointer to PriceLevel (owned by skip list) or nullptr if not found.
+    // Caller must not delete a returned pointer.
+    PriceLevel* find(double price) const;
+
+    // Return top N levels (sorted highest to lowest for asks/bids usage can filter)
+    std::vector<PriceLevel> topN(size_t n) const;
+
+    // Number of elements currently stored
+    size_t size() const noexcept { return node_count_; }
+
 private:
-    Node* head;
-    int Level;
+    struct Node {
+        double key;
+        PriceLevel value;
+        std::vector<Node*> forward;
+        Node(int level, double k, const PriceLevel &v);
+    };
 
-public:
-    skipList();
+    int randomLevel() const;
+    void freeList();
 
-    void insert(int data);  // To insert the value
-    void remove(int data);  // To delete the value
-    bool search(int data) const;  // To search for a value
-    void display() const;         // Function to display a skip List
-
+    Node *head_;
+    int maxLevel_;
+    double p_;                 // probability for level increase (0 < p < 1)
+    int level_;                // current highest level (0-based index)
+    size_t node_count_;
+    mutable std::mt19937 rng_; // rng for randomLevel
 };

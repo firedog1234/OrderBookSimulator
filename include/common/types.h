@@ -18,7 +18,7 @@ struct Order {
 
 struct PriceLevel {
   double priceLevel;
-  std::deque<Order*> orders;
+  std::deque<Order> orders;
   int64_t totalQuantity = 0;
 };
 

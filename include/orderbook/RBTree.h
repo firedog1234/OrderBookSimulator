@@ -3,6 +3,8 @@
 //
 
 #pragma once
+#include <algorithm>
+#include <chrono>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -27,7 +29,8 @@ private:
   static constexpr uint32_t SIZE = 100'000;
 
   std::vector<std::unique_ptr<RBNode>> node_pool;
-  std::unordered_map<uint32_t, Order *> lookUp;
+
+  size_t calculateMemory(RBNode *node);
 
   RBNode *CreateNode(Order &order);
 
@@ -38,20 +41,21 @@ private:
   static RBNode *getGrandParent(RBNode *node);
   RBNode *getInorderSuccessor(RBNode *node);
   void transplant(RBNode *u, RBNode *v);
-  void fixDelete(RBNode* x, RBNode* parent);
+  void fixDelete(RBNode *x, RBNode *parent);
 
 public:
   RBTree();
 
   void insert(Order &order);
   void remove(RBNode *toRemove);
-  void removeNode();
   void findAndDelete(const Order &order);
 
-  RBNode* getMin();
-  RBNode* getMax();
+  RBNode *getMin();
+  RBNode *getMax();
 
   RBNode *find(const Order &order);
+
+  size_t getMemory();
 
   [[nodiscard]] Order get_best_bid() const;
   [[nodiscard]] Order get_best_ask() const;

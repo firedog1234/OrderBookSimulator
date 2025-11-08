@@ -6,9 +6,17 @@
 int main() {
    crow::SimpleApp app;
 
+  CROW_ROUTE(app, "/").methods("OPTIONS"_method)
+  ([]() {
+      auto response = crow::response("");
+      response.add_header("Access-Control-Allow-Origin", "*");
+      response.add_header("Access-Control-Allow-Methods", "GET, OPTIONS");
+      response.add_header("Access-Control-Allow-Headers", "Content-Type");
+      return response;
+  });
   CROW_ROUTE(app, "/")
   ([]() {
-    Metrics exampleMetrics = {DataStructureName::RB_TREE,
+    Metrics redBlackTree = {DataStructureName::RB_TREE,
                               12.5,
                               8.3,
                               5.1,
@@ -24,7 +32,31 @@ int main() {
                               15000,
                               15000,
                               {5.2, 6.1, 12.3, 8.7, 15.4}};
-    return to_json(exampleMetrics);
+      Metrics skipList = {DataStructureName::SKIP_LIST,
+                              12.5,
+                              8.3,
+                              5.1,
+                              2.0,
+                              45.7,
+                              10.2,
+                              25.8,
+                              38.4,
+                              8500.0,
+                              100000,
+                              2048576,
+                              70000,
+                              15000,
+                              15000,
+                              {5.2, 6.1, 12.3, 8.7, 15.4}};
+      crow::json::wvalue result(crow::json::type::List);
+      result[0] = to_json(redBlackTree);
+      result[1] = to_json(skipList);
+    auto response = crow::response(result);
+    response.add_header("Access-Control-Allow-Origin", "*");
+    response.add_header("Access-Control-Allow-Methods", "GET, OPTIONS");
+    response.add_header("Access-Control-Allow-Headers", "Content-Type");
+    response.code = 200;
+    return response;
   });
 
   // Start server

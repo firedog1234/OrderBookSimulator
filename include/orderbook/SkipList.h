@@ -20,15 +20,15 @@ public:
     bool remove(double price, int quantity);
     PriceLevel* find(double price) const;
     std::vector<PriceLevel> topN(size_t n) const;
-    size_t size() const noexcept { return node_count_; }
+    size_t size() const noexcept { return nodeCount; }
     size_t getMemoryUsage() const;
 private:
-    int maxLevel_;
-    double p_;
-    int level_;
-    size_t node_count_;
-    Node* head_;
-    mutable std::mt19937 rng_;
+    int maxLevel;
+    double p;
+    int level;
+    size_t nodeCount;
+    Node* head;
+    mutable std::mt19937 rng;
 
     int randomLevel() const;
     void freeList();
@@ -58,13 +58,13 @@ public:
         double percentile99 = 0;
         //throughput
         double ordersPerSecond = 0;
-        uint64_t totalOrders = 0;
+        int totalOrders = 0;
         // memory
         size_t memoryUsageBytes = 0;
         // order count
-        uint64_t addCount = 0;
-        uint64_t cancelCount = 0;
-        uint64_t modifyCount = 0;
+        int addCount = 0;
+        int cancelCount = 0;
+        int modifyCount = 0;
         //latency
         std::vector<double> latencies;
         std::vector<double> insertLatencies;

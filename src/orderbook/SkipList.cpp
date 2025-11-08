@@ -15,42 +15,42 @@ SkipList::Node::Node(int lvl, double price, const std::deque<double> &qtys) {
 }
 
 //skipList constructor
-//maxLevel_: maximum number of skip list levels
-//p_: probability used to determine the random level for each new node
-//level_: current highest level in the list
-//node_count_: number of nodes
-//rng_: random number generator used for randomLevel()
-//head_: dummy node at the start of the skip list with a very small key
+//maxLevel: maximum number of skip list levels
+//p: probability used to determine the random level for each new node
+//level: current highest level in the list
+//nodeCount: number of nodes
+//rng: random number generator used for randomLevel()
+//head: dummy node at the start of the skip list with a very small key
 SkipList::SkipList(int maxLevel, double p)
-    : maxLevel_(maxLevel), p_(p), level_(0), node_count_(0),
-      rng_(std::mt19937(std::random_device{}())) {
-    head_ = new Node(maxLevel_, -std::numeric_limits<double>::infinity(), std::deque<double>{});
+    : maxLevel(maxLevel), p(p), level(0), nodeCount(0),
+      rng(std::mt19937(std::random_device{}())) {
+    head = new Node(maxLevel, -std::numeric_limits<double>::infinity(), std::deque<double>{});
 }
 
 //destructor
 SkipList::~SkipList() {
     freeList();
-    delete head_;
-    head_ = nullptr;
+    delete head;
+    head = nullptr;
 }
 
 //deletes all nodes and reesets the skiplist’s count and level
 void SkipList::freeList()
 {
-    Node* current = head_->forward[0];
+    Node* current = head->forward[0];
     while (current) {
         Node* next = current->forward[0];
         delete current;
         current = next;
     }
-    node_count_ = 0;
-    level_ = 0;
+    nodeCount = 0;
+    level = 0;
 }
 
 // Memory usage calculation
 size_t SkipList::getMemoryUsage() const {
     size_t memory = sizeof(*this);
-    Node* current = head_->forward[0];
+    Node* current = head->forward[0];
     while (current) {
         memory += sizeof(Node)+current->forward.capacity()*sizeof(Node*)+current->Price.size()*sizeof(double);
     }
@@ -62,7 +62,7 @@ int SkipList::randomLevel() const
 {
     int lvl = 1;
     std::uniform_real_distribution<double> dist(0.0, 1.0);
-    while (dist(rng_) < p_ && lvl < maxLevel_) {
+    while (dist(rng) < p && lvl < maxLevel) {
         lvl++;
     }
     return lvl;
@@ -71,10 +71,10 @@ int SkipList::randomLevel() const
 //insert a PriceLevel
 bool SkipList::insert(const PriceLevel &pl)
 {
-    std::vector<Node*> update(maxLevel_, nullptr); //keeps track of the nodes at each level that will point to the new node
-    Node* current = head_;
+    std::vector<Node*> update(maxLevel, nullptr); //keeps track of the nodes at each level that will point to the new node
+    Node* current = head;
 
-    for (int i = level_; i >= 0; i--) {
+    for (int i = level; i >= 0; i--) {
         while (current->forward[i] && current->forward[i]->key < pl.priceLevel)
             current = current->forward[i];
         update[i] = current;
@@ -90,10 +90,10 @@ bool SkipList::insert(const PriceLevel &pl)
         return true;
     } else {
         int newLevel = randomLevel();
-        if (newLevel - 1 > level_) {
-            for (int i = level_ + 1; i < newLevel; i++)
-                update[i] = head_;
-            level_ = newLevel - 1;
+        if (newLevel - 1 > level) {
+            for (int i = level + 1; i < newLevel; i++)
+                update[i] = head;
+            level = newLevel - 1;
         }
 
         Node* newNode = new Node(newLevel, pl.priceLevel, pl.Price);
@@ -101,7 +101,7 @@ bool SkipList::insert(const PriceLevel &pl)
             newNode->forward[i] = update[i]->forward[i];
             update[i]->forward[i] = newNode;
         }
-        node_count_++;
+        nodeCount++;
         return true;
     }
 }
@@ -109,10 +109,10 @@ bool SkipList::insert(const PriceLevel &pl)
 // remove quantity or node
 bool SkipList::remove(double price, int quantity)
 {
-    std::vector<Node*> update(maxLevel_, nullptr);
-    Node* current = head_;
+    std::vector<Node*> update(maxLevel, nullptr);
+    Node* current = head;
 
-    for (int i = level_; i >= 0; i--) { //iterates thru the skip list
+    for (int i = level; i >= 0; i--) { //iterates thru the skip list
         while (current->forward[i] && current->forward[i]->key < price)
             current = current->forward[i];
         update[i] = current;
@@ -133,14 +133,14 @@ bool SkipList::remove(double price, int quantity)
         }
 
         if (current->Price.empty()) { //removes node if deque is empty
-            for (int i = 0; i <= level_; i++) {
+            for (int i = 0; i <= level; i++) {
                 if (update[i]->forward[i] != current) break;
                 update[i]->forward[i] = current->forward[i];
             }
             delete current;
-            while (level_ > 0 && head_->forward[level_] == nullptr)
-                level_--;
-            node_count_--;
+            while (level > 0 && head->forward[level] == nullptr)
+                level--;
+            nodeCount--;
         }
         return true;
     }
@@ -149,8 +149,8 @@ bool SkipList::remove(double price, int quantity)
 
 //find a price level
 PriceLevel* SkipList::find(double price) const{
-    Node* current = head_;
-    for (int i = level_; i >= 0; i--) {
+    Node* current = head;
+    for (int i = level; i >= 0; i--) {
         while (current->forward[i] && current->forward[i]->key < price)
             current = current->forward[i];
     }
@@ -164,7 +164,7 @@ PriceLevel* SkipList::find(double price) const{
 // returns top bids or asks
 std::vector<PriceLevel> SkipList::topN(size_t n) const{
     std::vector<PriceLevel> result;
-    Node* current = head_->forward[0];
+    Node* current = head->forward[0];
     while (current && result.size() < n) {
         result.emplace_back(current->key, current->Price);
         current = current->forward[0];
@@ -216,7 +216,7 @@ void OrderBookManager::processOrder(const Order &o){
     double totalMicrosec = std::chrono::duration<double, std::micro>(realEnd - realStart).count();
     metrics.latencies.push_back(totalMicrosec);
 
-    if (startTime_.time_since_epoch().count() == 0) {
+    if (startTime_.time_since_epoch().count() == 0) { //duration since startTime_, checks if it was initialized
         startTime_ = realStart;
     }
 }
@@ -233,18 +233,15 @@ void OrderBookManager:: computeStats() {
 
     // averages
     if (!metrics.insertLatencies.empty()) {
-        metrics.avgInsertTime = std::accumulate(metrics.insertLatencies.begin(),
-                                               metrics.insertLatencies.end(), 0.0) /
-                               metrics.insertLatencies.size();
+        metrics.avgInsertTime = std::accumulate(metrics.insertLatencies.begin(), metrics.insertLatencies.end(), 0.0) /
+                                metrics.insertLatencies.size();
     }
     if (!metrics.deleteLatencies.empty()) {
-        metrics.avgDeleteTime = std::accumulate(metrics.deleteLatencies.begin(),
-                                               metrics.deleteLatencies.end(), 0.0) /
+        metrics.avgDeleteTime = std::accumulate(metrics.deleteLatencies.begin(), metrics.deleteLatencies.end(), 0.0) /
                                metrics.deleteLatencies.size();
     }
     if (!metrics.lookupLatencies.empty()) {
-        metrics.avgLookupTime = std::accumulate(metrics.lookupLatencies.begin(),
-                                               metrics.lookupLatencies.end(), 0.0) /
+        metrics.avgLookupTime = std::accumulate(metrics.lookupLatencies.begin(), metrics.lookupLatencies.end(), 0.0) /
                                metrics.lookupLatencies.size();
     }
 
@@ -252,14 +249,14 @@ void OrderBookManager:: computeStats() {
     std::vector<double> sorted = metrics.latencies;
     std::sort(sorted.begin(), sorted.end());
     metrics.medianLatency = sorted[sorted.size() / 2];
-    int idx95 = 0.95 * sorted.size();
-    int idx99 = 0.99 * sorted.size();
-    metrics.percentile95 = sorted[idx95];
-    metrics.percentile99 = sorted[idx99];
+    int percentile95 = 0.95 * sorted.size();
+    int percentile99 = 0.99 * sorted.size();
+    metrics.percentile95 = sorted[percentile95];
+    metrics.percentile99 = sorted[percentile99];
 
     //throughput: total orders / total time
-    auto endTime = std::chrono::high_resolution_clock::now();
-    double totalSeconds = std::chrono::duration<double>(endTime - startTime_).count();
+    auto endTime_ = std::chrono::high_resolution_clock::now();
+    double totalSeconds = std::chrono::duration<double>(endTime_ - startTime_).count();
     if (totalSeconds > 0) {
         metrics.ordersPerSecond = metrics.totalOrders / totalSeconds;
     }
@@ -269,3 +266,6 @@ OrderBookManager::Metrics OrderBookManager::getMetrics() {
     computeStats();
     return metrics;
 }
+
+//chrono derived from https://en.cppreference.com/w/cpp/chrono.html for calculating time
+//https://en.cppreference.com/w/cpp/chrono/time_point/time_since_epoch.html used to calculate time difference for latency

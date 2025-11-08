@@ -1,13 +1,17 @@
 #include "../../include/orderbook/SkipList.h"
-#include <cmath>
+#include <chrono>
+#include <algorithm>
+#include <numeric>
 #include <deque>
 
 //node constructor
 //key: the price level
 //price: deque of quantities at that price
 //forward: vector of pointers to nodes at each skip list level.
-SkipList::Node::Node(int level, double k, const std::deque<double> &prices)
-    : key(k), Price(prices), forward(level, nullptr) {
+SkipList::Node::Node(int lvl, double price, const std::deque<double> &qtys) {
+    key = price;
+    Price = qtys;
+    forward.resize(lvl, nullptr);
 }
 
 //skipList constructor
@@ -41,6 +45,16 @@ void SkipList::freeList()
     }
     node_count_ = 0;
     level_ = 0;
+}
+
+// Memory usage calculation
+size_t SkipList::getMemoryUsage() const {
+    size_t memory = sizeof(*this);
+    Node* current = head_->forward[0];
+    while (current) {
+        memory += sizeof(Node)+current->forward.capacity()*sizeof(Node*)+current->Price.size()*sizeof(double);
+    }
+    return memory;
 }
 
 //random level generator for new nodes
@@ -103,7 +117,6 @@ bool SkipList::remove(double price, int quantity)
             current = current->forward[i];
         update[i] = current;
     }
-
     current = current->forward[0];
 
     if (current && current->key == price) { //removes from deque
@@ -118,6 +131,7 @@ bool SkipList::remove(double price, int quantity)
                 qtyToRemove = 0;
             }
         }
+
         if (current->Price.empty()) { //removes node if deque is empty
             for (int i = 0; i <= level_; i++) {
                 if (update[i]->forward[i] != current) break;
@@ -134,8 +148,7 @@ bool SkipList::remove(double price, int quantity)
 }
 
 //find a price level
-PriceLevel* SkipList::find(double price) const
-{
+PriceLevel* SkipList::find(double price) const{
     Node* current = head_;
     for (int i = level_; i >= 0; i--) {
         while (current->forward[i] && current->forward[i]->key < price)
@@ -143,17 +156,13 @@ PriceLevel* SkipList::find(double price) const
     }
     current = current->forward[0];
     if (current && current->key == price) {
-        static PriceLevel pl;
-        pl.priceLevel = current->key;
-        pl.Price = current->Price;
-        return &pl;
+        return new PriceLevel{current->key, current->Price};
     }
     return nullptr;
 }
 
 // returns top bids or asks
-std::vector<PriceLevel> SkipList::topN(size_t n) const
-{
+std::vector<PriceLevel> SkipList::topN(size_t n) const{
     std::vector<PriceLevel> result;
     Node* current = head_->forward[0];
     while (current && result.size() < n) {
@@ -163,28 +172,100 @@ std::vector<PriceLevel> SkipList::topN(size_t n) const
     return result;
 }
 
-void OrderBookManager::processOrder(const Order &o)
-{
+void OrderBookManager::processOrder(const Order &o){
+    auto realStart = std::chrono::high_resolution_clock::now();
     if (o.type == OrderType::ADD) {
         PriceLevel pl(o.price, std::deque<double>{static_cast<double>(o.quantity)});
-        if (o.side == Side::BID)
+        auto start = std::chrono::high_resolution_clock::now();
+        if (o.side == Side::BID) {
             bids_.insert(pl);
-        else
+        }
+        else {
             asks_.insert(pl);
+        }
+        auto end = std::chrono::high_resolution_clock::now();
+        double microsec = std::chrono::duration<double, std::micro>(end - start).count();
+        metrics.insertLatencies.push_back(microsec);
+        metrics.addCount++;
+        metrics.totalOrders++;
     }
     else if (o.type == OrderType::CANCEL) {
+        auto start = std::chrono::high_resolution_clock::now();
         if (o.side == Side::BID)
             bids_.remove(o.price, o.quantity);
         else
             asks_.remove(o.price, o.quantity);
+        auto end = std::chrono::high_resolution_clock::now();
+        double microsec = std::chrono::duration<double, std::micro>(end - start).count();
+        metrics.deleteLatencies.push_back(microsec);
+        metrics.cancelCount++;
     }
     else if (o.type == OrderType::MODIFY) {
+        auto start = std::chrono::high_resolution_clock::now();
         SkipList* sl = (o.side == Side::BID) ? &bids_ : &asks_;
-        PriceLevel* pl = sl->find(o.price);
-        if (pl) {
-            // replace Price deque with single value from order quantity
+        if (PriceLevel* pl = sl->find(o.price)) {
             pl->Price.clear();
             pl->Price.push_back(static_cast<double>(o.quantity));
         }
+        auto end = std::chrono::high_resolution_clock::now();
+        double microsec = std::chrono::duration<double, std::micro>(end - start).count();
+        metrics.lookupLatencies.push_back(microsec);
+        metrics.modifyCount++;
     }
+    auto realEnd = std::chrono::high_resolution_clock::now();
+    double totalMicrosec = std::chrono::duration<double, std::micro>(realEnd - realStart).count();
+    metrics.latencies.push_back(totalMicrosec);
+
+    if (startTime_.time_since_epoch().count() == 0) {
+        startTime_ = realStart;
+    }
+}
+
+void OrderBookManager:: computeStats() {
+    if (metrics.latencies.empty()) return;
+
+    //sets the memory usage
+    metrics.memoryUsageBytes = bids_.getMemoryUsage() + asks_.getMemoryUsage();
+
+    // min/max for all operations
+    metrics.minLatency = *std::min_element(metrics.latencies.begin(), metrics.latencies.end());
+    metrics.maxLatency = *std::max_element(metrics.latencies.begin(), metrics.latencies.end());
+
+    // averages
+    if (!metrics.insertLatencies.empty()) {
+        metrics.avgInsertTime = std::accumulate(metrics.insertLatencies.begin(),
+                                               metrics.insertLatencies.end(), 0.0) /
+                               metrics.insertLatencies.size();
+    }
+    if (!metrics.deleteLatencies.empty()) {
+        metrics.avgDeleteTime = std::accumulate(metrics.deleteLatencies.begin(),
+                                               metrics.deleteLatencies.end(), 0.0) /
+                               metrics.deleteLatencies.size();
+    }
+    if (!metrics.lookupLatencies.empty()) {
+        metrics.avgLookupTime = std::accumulate(metrics.lookupLatencies.begin(),
+                                               metrics.lookupLatencies.end(), 0.0) /
+                               metrics.lookupLatencies.size();
+    }
+
+    //final stats
+    std::vector<double> sorted = metrics.latencies;
+    std::sort(sorted.begin(), sorted.end());
+    metrics.medianLatency = sorted[sorted.size() / 2];
+    int idx95 = 0.95 * sorted.size();
+    int idx99 = 0.99 * sorted.size();
+    metrics.percentile95 = sorted[idx95];
+    metrics.percentile99 = sorted[idx99];
+
+    //throughput: total orders / total time
+    auto endTime = std::chrono::high_resolution_clock::now();
+    double totalSeconds = std::chrono::duration<double>(endTime - startTime_).count();
+    if (totalSeconds > 0) {
+        metrics.ordersPerSecond = metrics.totalOrders / totalSeconds;
+    }
+}
+
+OrderBookManager::Metrics OrderBookManager::getMetrics() {
+    computeStats();
+    return metrics;
 }

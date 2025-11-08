@@ -37,8 +37,10 @@ private:
 class OrderBookManager {
 public:
     OrderBookManager() {
-    metrics.name = DataStructureName::SKIP_LIST;
+        metrics.name = DataStructureName::SKIP_LIST;
     }
+    const SkipList& getBids() const { return bids_; }
+    const SkipList& getAsks() const { return asks_; }
 
     void processOrder(const Order &o);
 

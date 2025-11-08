@@ -2,12 +2,13 @@
 #include <chrono>
 #include <algorithm>
 #include <numeric>
+#include <iostream>
 #include <deque>
 
 //node constructor
 //key: the price level
 //price: deque of quantities at that price
-//forward: vector of pointers to nodes at each skip list level.
+//forward: vector of pointers to nodes at each skip list level
 SkipList::Node::Node(int lvl, double price, const std::deque<double> &qtys) {
     key = price;
     Price = qtys;
@@ -53,6 +54,7 @@ size_t SkipList::getMemoryUsage() const {
     Node* current = head->forward[0];
     while (current) {
         memory += sizeof(Node)+current->forward.capacity()*sizeof(Node*)+current->Price.size()*sizeof(double);
+        current = current->forward[0];
     }
     return memory;
 }
@@ -166,7 +168,7 @@ std::vector<PriceLevel> SkipList::topN(size_t n) const{
     std::vector<PriceLevel> result;
     Node* current = head->forward[0];
     while (current && result.size() < n) {
-        result.emplace_back(current->key, current->Price);
+        result.push_back(PriceLevel{current->key, current->Price});
         current = current->forward[0];
     }
     return result;
@@ -175,7 +177,7 @@ std::vector<PriceLevel> SkipList::topN(size_t n) const{
 void OrderBookManager::processOrder(const Order &o){
     auto realStart = std::chrono::high_resolution_clock::now();
     if (o.type == OrderType::ADD) {
-        PriceLevel pl(o.price, std::deque<double>{static_cast<double>(o.quantity)});
+        PriceLevel pl{ o.price, std::deque<double>{static_cast<double>(o.quantity)} };
         auto start = std::chrono::high_resolution_clock::now();
         if (o.side == Side::BID) {
             bids_.insert(pl);
@@ -187,7 +189,6 @@ void OrderBookManager::processOrder(const Order &o){
         double microsec = std::chrono::duration<double, std::micro>(end - start).count();
         metrics.insertLatencies.push_back(microsec);
         metrics.addCount++;
-        metrics.totalOrders++;
     }
     else if (o.type == OrderType::CANCEL) {
         auto start = std::chrono::high_resolution_clock::now();
@@ -212,6 +213,8 @@ void OrderBookManager::processOrder(const Order &o){
         metrics.lookupLatencies.push_back(microsec);
         metrics.modifyCount++;
     }
+    metrics.totalOrders++;
+
     auto realEnd = std::chrono::high_resolution_clock::now();
     double totalMicrosec = std::chrono::duration<double, std::micro>(realEnd - realStart).count();
     metrics.latencies.push_back(totalMicrosec);

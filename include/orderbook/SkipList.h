@@ -1,52 +1,50 @@
-//
-// Created by Avi Patel on 10/29/25.
-//
-
 #pragma once
-#include "../../include/common/types.h"   // for PriceLevel
+#include "../../include/common/types.h" // for PriceLevel, Side, OrderType, Order
 #include <vector>
-#include <iostream>
+#include <deque>
 #include <random>
-#include <memory>
-#include <limits>
 
 class SkipList {
 public:
-    explicit SkipList(int maxLevel = 16, double p = 0.5);
+    struct Node {
+        double key; // price
+        std::deque<double> Price; //deque of quantities for this price level
+        std::vector<Node*> forward;
+
+        Node(int level, double k, const std::deque<double>& price_deque);
+    };
+
+    SkipList(int maxLevel = 16, double p = 0.5);
     ~SkipList();
 
-    // Insert a price level. If a level at a price already exists, replace its Price deque.
-    // Returns true if inserted (or replaced).
-    bool insert(const PriceLevel &pl) ;
-
-    // Remove price level by price. Returns true if removed.
-    bool remove(double price);
-
-    // Return pointer to PriceLevel (owned by skip list) or nullptr if not found.
-    // Caller must not delete a returned pointer.
+    bool insert(const PriceLevel& pl);
+    bool remove(double price, int quantity);
     PriceLevel* find(double price) const;
-
-    // Return top N levels (sorted highest to lowest for asks/bids usage can filter)
     std::vector<PriceLevel> topN(size_t n) const;
-
-    // Number of elements currently stored
     size_t size() const noexcept { return node_count_; }
 
 private:
-    struct Node {
-        double key;
-        PriceLevel value;
-        std::vector<Node*> forward;
-        Node(int level, double k, const PriceLevel &v);
-    };
+    int maxLevel_;
+    double p_;
+    int level_;
+    size_t node_count_;
+    Node* head_;
+    mutable std::mt19937 rng_;
 
     int randomLevel() const;
     void freeList();
+};
 
-    Node *head_;
-    int maxLevel_;
-    double p_;                 // probability for level increase (0 < p < 1)
-    int level_;                // current highest level (0-based index)
-    size_t node_count_;
-    mutable std::mt19937 rng_; // rng for randomLevel
+class OrderBookManager {
+public:
+    OrderBookManager() = default;
+
+    void processOrder(const Order &o);
+
+    std::vector<PriceLevel> getTopBids(size_t n) const { return bids_.topN(n); }
+    std::vector<PriceLevel> getTopAsks(size_t n) const { return asks_.topN(n); }
+
+private:
+    SkipList bids_;
+    SkipList asks_;
 };

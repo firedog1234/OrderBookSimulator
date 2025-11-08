@@ -3,7 +3,7 @@
 #include <crow.h>
 #include <deque>
 
-enum struct Side : uint8_t { BID, ASK };
+enum struct Side : uint8_t { BID, ASK};
 
 enum struct OrderType : uint8_t { ADD, CANCEL, MODIFY };
 
@@ -18,7 +18,8 @@ struct Order {
 
 struct PriceLevel {
   double priceLevel;
-  std::deque<double> Price;
+  std::deque<Order> orders;
+  int64_t totalQuantity = 0;
 };
 
 enum struct DataStructureName : uint8_t { RB_TREE, SKIP_LIST };

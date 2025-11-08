@@ -1,9 +1,10 @@
 #include "../include/common/types.h"
 #include <crow.h>
 #include <iostream>
+#include "../include/orderbook/OrderBookRB.h"
 
 int main() {
-  crow::SimpleApp app;
+   crow::SimpleApp app;
 
   CROW_ROUTE(app, "/").methods("OPTIONS"_method)
   ([]() {

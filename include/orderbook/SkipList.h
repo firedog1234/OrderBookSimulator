@@ -48,32 +48,13 @@ public:
     std::vector<PriceLevel> getTopBids(size_t n) const { return bids_.topN(n); }
     std::vector<PriceLevel> getTopAsks(size_t n) const { return asks_.topN(n); }
 
-    struct Metrics {
-        DataStructureName name;
-        // metrics in microseconds
-        double avgInsertTime = 0;
-        double avgDeleteTime = 0;
-        double avgLookupTime = 0;
-        double minLatency = std::numeric_limits<double>::max();
-        double maxLatency = 0;
-        double medianLatency = 0;
-        double percentile95 = 0;
-        double percentile99 = 0;
-        //throughput
-        double ordersPerSecond = 0;
-        int totalOrders = 0;
-        // memory
-        size_t memoryUsageBytes = 0;
-        // order count
-        int addCount = 0;
-        int cancelCount = 0;
-        int modifyCount = 0;
-        //latency
-        std::vector<double> latencies;
+    struct Metrics2 {
         std::vector<double> insertLatencies;
         std::vector<double> deleteLatencies;
         std::vector<double> lookupLatencies;
     };
+
+    Metrics2 metrics2;
     Metrics metrics;
     Metrics getMetrics();
 

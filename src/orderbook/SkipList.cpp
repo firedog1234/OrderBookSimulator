@@ -191,7 +191,7 @@ void OrderBookManager::processOrder(const Order &o){
         }
         auto end = std::chrono::high_resolution_clock::now();
         double microsec = std::chrono::duration<double, std::micro>(end - start).count();
-        metrics.insertLatencies.push_back(microsec);
+        metrics2.insertLatencies.push_back(microsec);
         metrics.addCount++;
     }
     else if (o.type == OrderType::CANCEL) {
@@ -202,7 +202,7 @@ void OrderBookManager::processOrder(const Order &o){
             asks_.remove(o.price, o.quantity);
         auto end = std::chrono::high_resolution_clock::now();
         double microsec = std::chrono::duration<double, std::micro>(end - start).count();
-        metrics.deleteLatencies.push_back(microsec);
+        metrics2.deleteLatencies.push_back(microsec);
         metrics.cancelCount++;
     }
     else if (o.type == OrderType::MODIFY) {
@@ -222,7 +222,7 @@ void OrderBookManager::processOrder(const Order &o){
         }
         auto end = std::chrono::high_resolution_clock::now();
         double microsec = std::chrono::duration<double, std::micro>(end - start).count();
-        metrics.lookupLatencies.push_back(microsec);
+        metrics2.lookupLatencies.push_back(microsec);
         metrics.modifyCount++;
     }
     metrics.totalOrders++;
@@ -247,17 +247,17 @@ void OrderBookManager:: computeStats() {
     metrics.maxLatency = *std::max_element(metrics.latencies.begin(), metrics.latencies.end());
 
     // averages
-    if (!metrics.insertLatencies.empty()) {
-        metrics.avgInsertTime = std::accumulate(metrics.insertLatencies.begin(), metrics.insertLatencies.end(), 0.0) /
-                                metrics.insertLatencies.size();
+    if (!metrics2.insertLatencies.empty()) {
+        metrics.avgInsertTime = std::accumulate(metrics2.insertLatencies.begin(), metrics2.insertLatencies.end(), 0.0) /
+                                metrics2.insertLatencies.size();
     }
-    if (!metrics.deleteLatencies.empty()) {
-        metrics.avgDeleteTime = std::accumulate(metrics.deleteLatencies.begin(), metrics.deleteLatencies.end(), 0.0) /
-                               metrics.deleteLatencies.size();
+    if (!metrics2.deleteLatencies.empty()) {
+        metrics.avgDeleteTime = std::accumulate(metrics2.deleteLatencies.begin(), metrics2.deleteLatencies.end(), 0.0) /
+                               metrics2.deleteLatencies.size();
     }
-    if (!metrics.lookupLatencies.empty()) {
-        metrics.avgLookupTime = std::accumulate(metrics.lookupLatencies.begin(), metrics.lookupLatencies.end(), 0.0) /
-                               metrics.lookupLatencies.size();
+    if (!metrics2.lookupLatencies.empty()) {
+        metrics.avgLookupTime = std::accumulate(metrics2.lookupLatencies.begin(), metrics2.lookupLatencies.end(), 0.0) /
+                               metrics2.lookupLatencies.size();
     }
 
     //final stats
@@ -277,7 +277,7 @@ void OrderBookManager:: computeStats() {
     }
 }
 
-OrderBookManager::Metrics OrderBookManager::getMetrics() {
+Metrics OrderBookManager::getMetrics() {
     computeStats();
     return metrics;
 }

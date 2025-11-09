@@ -10,20 +10,20 @@ export function formatLatency(µs: number): string {
  */
 export function formatMemory(bytes: number): string {
   if (bytes === 0) return "0 B";
-  
+
   const k = 1024;
   const sizes = ["B", "KB", "MB", "GB"];
-  
+
   // Ensure we don't go beyond GB
   const i = Math.min(
     Math.floor(Math.log(bytes) / Math.log(k)),
     sizes.length - 1
   );
-  
+
   const value = bytes / Math.pow(k, i);
   // Show fewer decimal places for larger units
   const decimals = i === 0 ? 0 : i === 1 ? 1 : 2;
-  
+
   return `${value.toFixed(decimals)} ${sizes[i]}`;
 }
 
@@ -40,4 +40,3 @@ export function formatNumber(num: number): string {
 export function formatThroughput(ordersPerSecond: number): string {
   return `${formatNumber(Math.round(ordersPerSecond))} orders/sec`;
 }
-

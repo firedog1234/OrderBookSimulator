@@ -2,6 +2,7 @@
 
 #include <crow.h>
 #include <deque>
+#include <stdexcept>
 
 enum struct Side : uint8_t { BID, ASK};
 
@@ -91,6 +92,31 @@ inline crow::json::wvalue to_json(const Metrics &metrics) {
     json["latencies"][i] = metrics.latencies[i];
 
   return json;
+}
+
+struct OrderBookAmountInput {
+  int32_t amount;
+  OrderBookAmountInput() {};
+  OrderBookAmountInput(int32_t amount) : amount(amount) {}
+};
+
+class OrderBookNumberTooLargeException : public std::runtime_error {
+public:
+  using std::runtime_error::runtime_error;
+};
+
+inline OrderBookAmountInput to_input(const crow::json::rvalue &json) {
+  if (json.has("amount")) {
+    if (std::isnan(static_cast<int>(json["amount"]))) {
+      throw std::invalid_argument("Amount must be an integer");
+    }
+    if (static_cast<int>(json["amount"]) > 100000) {
+      throw OrderBookNumberTooLargeException("Number of orders in the order book must be less than 100000");
+    }
+    OrderBookAmountInput input = OrderBookAmountInput(static_cast<int>(json["amount"]));
+    return input;
+  }
+  throw std::runtime_error("No amount field was sent.");
 }
 /*
 Note that here that the enum values BID, ASK, ADD, ... etc etc will not be

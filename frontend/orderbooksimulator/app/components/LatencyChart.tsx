@@ -1,13 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Card,
-  CardContent,
-  Typography,
-  Box,
-  Grid,
-} from "@mui/material";
+import { Card, CardContent, Typography, Box, Grid } from "@mui/material";
 import {
   LineChart,
   Line,
@@ -85,7 +79,11 @@ export default function LatencyChart({ metrics, color }: LatencyChartProps) {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis
-                    label={{ value: "Latency (µs)", angle: -90, position: "left", offset: 10 }}
+                    label={{
+                      value: "Latency (µs)",
+                      angle: -90,
+                      position: "left",
+                    }}
                     tickFormatter={(value: number) => value.toFixed(1)}
                     width={60}
                   />
@@ -112,8 +110,14 @@ export default function LatencyChart({ metrics, color }: LatencyChartProps) {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="index" />
                     <YAxis
-                      label={{ value: "Latency (µs)", angle: -90, position: "insideLeft" }}
-                      tickFormatter={(value: number) => `${value.toFixed(1)} µs`}
+                      label={{
+                        value: "Latency (µs)",
+                        angle: -90,
+                        position: "insideLeft",
+                      }}
+                      tickFormatter={(value: number) =>
+                        `${value.toFixed(1)} µs`
+                      }
                     />
                     <Tooltip
                       formatter={(value: number) => formatLatency(value)}
@@ -134,4 +138,3 @@ export default function LatencyChart({ metrics, color }: LatencyChartProps) {
     </Box>
   );
 }
-

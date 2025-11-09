@@ -8,6 +8,7 @@ import {
   Box,
   CircularProgress,
   Alert,
+  Button,
 } from "@mui/material";
 import { Metrics } from "@/app/types/metrics";
 import MetricsOverview from "./MetricsOverview";
@@ -23,6 +24,7 @@ interface DashboardProps {
   skipList?: Metrics;
   loading: boolean;
   error?: string;
+  onBackToHome?: () => void;
 }
 
 export default function Dashboard({
@@ -30,6 +32,7 @@ export default function Dashboard({
   skipList,
   loading,
   error,
+  onBackToHome,
 }: DashboardProps) {
   if (loading) {
     return (
@@ -64,9 +67,27 @@ export default function Dashboard({
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ mb: 4 }}>
-        Order Book Simulator Dashboard
-      </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 4,
+        }}
+      >
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{ flex: 1, textAlign: "center" }}
+        >
+          Order Book Simulator Dashboard
+        </Typography>
+        {onBackToHome && (
+          <Button variant="outlined" onClick={onBackToHome} sx={{ ml: 2 }}>
+            Back to Home
+          </Button>
+        )}
+      </Box>
 
       {/* Performance Comparison Table - Full Width */}
       <Box sx={{ mb: 4 }}>
@@ -121,4 +142,3 @@ export default function Dashboard({
     </Container>
   );
 }
-

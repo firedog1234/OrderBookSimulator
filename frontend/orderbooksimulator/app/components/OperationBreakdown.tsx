@@ -1,13 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Card,
-  CardContent,
-  Typography,
-  Box,
-  Grid,
-} from "@mui/material";
+import { Card, CardContent, Typography, Box, Grid } from "@mui/material";
 import {
   PieChart,
   Pie,
@@ -104,13 +98,16 @@ export default function OperationBreakdown({
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis
-                    label={{ value: "Count", angle: -90, position: "left", offset: 10 }}
+                    label={{
+                      value: "Count",
+                      angle: -90,
+                      position: "left",
+                      offset: 10,
+                    }}
                     tickFormatter={(value: number) => formatNumber(value)}
                     width={70}
                   />
-                  <Tooltip
-                    formatter={(value: number) => formatNumber(value)}
-                  />
+                  <Tooltip formatter={(value: number) => formatNumber(value)} />
                   <Legend />
                   <Bar dataKey="count" fill={color} />
                 </BarChart>
@@ -122,4 +119,3 @@ export default function OperationBreakdown({
     </Box>
   );
 }
-

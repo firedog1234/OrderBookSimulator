@@ -1,12 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Card,
-  CardContent,
-  Typography,
-  Box,
-} from "@mui/material";
+import { Card, CardContent, Typography, Box } from "@mui/material";
 import {
   BarChart,
   Bar,
@@ -52,13 +47,18 @@ export default function ThroughputChart({
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis
-                label={{ value: "Throughput (orders/sec)", angle: -90, position: "left", offset: 10 }}
-                tickFormatter={(value: number) => formatNumber(Math.round(value))}
+                label={{
+                  value: "Throughput (orders/sec)",
+                  angle: -90,
+                  position: "left",
+                  offset: 10,
+                }}
+                tickFormatter={(value: number) =>
+                  formatNumber(Math.round(value))
+                }
                 width={80}
               />
-              <Tooltip
-                formatter={(value: number) => formatThroughput(value)}
-              />
+              <Tooltip formatter={(value: number) => formatThroughput(value)} />
               <Legend />
               <Bar dataKey="throughput" fill="#1976d2" />
             </BarChart>
@@ -68,4 +68,3 @@ export default function ThroughputChart({
     </Box>
   );
 }
-

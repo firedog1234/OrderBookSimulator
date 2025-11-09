@@ -38,6 +38,7 @@ private:
 class OrderBookManager {
 public:
     OrderBookManager() {
+        metrics = {};
         metrics.name = DataStructureName::SKIP_LIST;
     }
     const SkipList& getBids() const { return bids_; }

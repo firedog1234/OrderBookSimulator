@@ -163,6 +163,20 @@ void OrderBookRB::modifyOrderQuantity(uint32_t orderId, Side side,
 
   RBTree &tree = (side == Side::BID) ? bids : asks;
   if (orderPrices.find(orderId) == orderPrices.end()) {
+    auto end = std::chrono::high_resolution_clock::now();
+    double duration =
+        std::chrono::duration<double, std::micro>(end - beg).count();
+
+    metrics.modifyCount++;
+    metrics.latencies.push_back(duration);
+    metrics.avgLookupTime +=
+        (duration - metrics.avgLookupTime) / metrics.modifyCount;
+    metrics.minLatency = metrics.latencies.size() == 1
+                             ? duration
+                             : std::min(metrics.minLatency, duration);
+    metrics.maxLatency = metrics.latencies.size() == 1
+                             ? duration
+                             : std::max(metrics.maxLatency, duration);
     return;
   }
 
@@ -171,6 +185,20 @@ void OrderBookRB::modifyOrderQuantity(uint32_t orderId, Side side,
   dummyOrder.price = orderPrices[orderId];
   RBNode *node = tree.find(dummyOrder);
   if (!node) {
+    auto end = std::chrono::high_resolution_clock::now();
+    double duration =
+        std::chrono::duration<double, std::micro>(end - beg).count();
+
+    metrics.modifyCount++;
+    metrics.latencies.push_back(duration);
+    metrics.avgLookupTime +=
+        (duration - metrics.avgLookupTime) / metrics.modifyCount;
+    metrics.minLatency = metrics.latencies.size() == 1
+                             ? duration
+                             : std::min(metrics.minLatency, duration);
+    metrics.maxLatency = metrics.latencies.size() == 1
+                             ? duration
+                             : std::max(metrics.maxLatency, duration);
     return;
   }
 
@@ -207,6 +235,20 @@ void OrderBookRB::modifyOrderPrice(uint32_t orderId, Side side,
   RBTree &tree = (side == Side::BID) ? bids : asks;
 
   if (orderPrices.find(orderId) == orderPrices.end()) {
+    auto end = std::chrono::high_resolution_clock::now();
+    double duration =
+        std::chrono::duration<double, std::micro>(end - beg).count();
+
+    metrics.modifyCount++;
+    metrics.latencies.push_back(duration);
+    metrics.avgLookupTime +=
+        (duration - metrics.avgLookupTime) / metrics.modifyCount;
+    metrics.minLatency = metrics.latencies.size() == 1
+                             ? duration
+                             : std::min(metrics.minLatency, duration);
+    metrics.maxLatency = metrics.latencies.size() == 1
+                             ? duration
+                             : std::max(metrics.maxLatency, duration);
     return;
   }
   Order dummyOrder;
@@ -215,6 +257,20 @@ void OrderBookRB::modifyOrderPrice(uint32_t orderId, Side side,
 
   RBNode *node = tree.find(dummyOrder);
   if (!node) {
+    auto end = std::chrono::high_resolution_clock::now();
+    double duration =
+        std::chrono::duration<double, std::micro>(end - beg).count();
+
+    metrics.modifyCount++;
+    metrics.latencies.push_back(duration);
+    metrics.avgLookupTime +=
+        (duration - metrics.avgLookupTime) / metrics.modifyCount;
+    metrics.minLatency = metrics.latencies.size() == 1
+                             ? duration
+                             : std::min(metrics.minLatency, duration);
+    metrics.maxLatency = metrics.latencies.size() == 1
+                             ? duration
+                             : std::max(metrics.maxLatency, duration);
     return;
   }
 
@@ -228,6 +284,20 @@ void OrderBookRB::modifyOrderPrice(uint32_t orderId, Side side,
   }
 
   if (!orderPtr.has_value()) {
+    auto end = std::chrono::high_resolution_clock::now();
+    double duration =
+        std::chrono::duration<double, std::micro>(end - beg).count();
+
+    metrics.modifyCount++;
+    metrics.latencies.push_back(duration);
+    metrics.avgLookupTime +=
+        (duration - metrics.avgLookupTime) / metrics.modifyCount;
+    metrics.minLatency = metrics.latencies.size() == 1
+                             ? duration
+                             : std::min(metrics.minLatency, duration);
+    metrics.maxLatency = metrics.latencies.size() == 1
+                             ? duration
+                             : std::max(metrics.maxLatency, duration);
     return;
   }
 

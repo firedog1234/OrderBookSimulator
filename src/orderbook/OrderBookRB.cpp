@@ -296,5 +296,7 @@ Metrics OrderBookRB::getMetrics() {
     result.percentile99 = 0;
   }
 
+  result.totalOrders = metrics.addCount + metrics.cancelCount + metrics.modifyCount;
+
   return result;
 }

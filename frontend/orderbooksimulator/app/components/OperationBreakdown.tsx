@@ -102,10 +102,10 @@ export default function OperationBreakdown({
                       value: "Count",
                       angle: -90,
                       position: "left",
-                      offset: 10,
+                      offset: 0,
                     }}
                     tickFormatter={(value: number) => formatNumber(value)}
-                    width={70}
+                    width={80}
                   />
                   <Tooltip formatter={(value: number) => formatNumber(value)} />
                   <Legend />

@@ -23,7 +23,6 @@ interface LatencyChartProps {
 }
 
 export default function LatencyChart({ metrics, color }: LatencyChartProps) {
-  // Prepare data for percentile chart
   const percentileData = [
     {
       name: "Min",
@@ -67,7 +66,6 @@ export default function LatencyChart({ metrics, color }: LatencyChartProps) {
       </Typography>
 
       <Grid container spacing={2}>
-        {/* Percentile Chart */}
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
@@ -83,9 +81,10 @@ export default function LatencyChart({ metrics, color }: LatencyChartProps) {
                       value: "Latency (µs)",
                       angle: -90,
                       position: "left",
+                      offset: 0,
                     }}
                     tickFormatter={(value: number) => value.toFixed(1)}
-                    width={60}
+                    width={90}
                   />
                   <Tooltip
                     formatter={(value: number) => formatLatency(value)}
@@ -96,8 +95,6 @@ export default function LatencyChart({ metrics, color }: LatencyChartProps) {
             </CardContent>
           </Card>
         </Grid>
-
-        {/* Latency Distribution */}
         {latencyDistribution.length > 0 && (
           <Grid item xs={12} md={6}>
             <Card>
@@ -113,11 +110,11 @@ export default function LatencyChart({ metrics, color }: LatencyChartProps) {
                       label={{
                         value: "Latency (µs)",
                         angle: -90,
-                        position: "insideLeft",
+                        position: "left",
+                        offset: 0,
                       }}
-                      tickFormatter={(value: number) =>
-                        `${value.toFixed(1)} µs`
-                      }
+                      tickFormatter={(value: number) => value.toFixed(1)}
+                      width={90}
                     />
                     <Tooltip
                       formatter={(value: number) => formatLatency(value)}

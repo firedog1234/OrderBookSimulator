@@ -30,7 +30,6 @@ int main() {
                   tree.cancelOrder(order);
               } else if (order.type == OrderType::MODIFY) {
                   tree.modifyOrderPrice(order.id, order.side, order.price);
-                  tree.modifyOrderQuantity(order.id, order.side, order.quantity);
               }
           }
           OrderBookManager list;

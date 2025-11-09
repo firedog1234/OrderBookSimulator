@@ -36,7 +36,6 @@ export default function MetricsOverview({
         {metrics.name}
       </Typography>
       <Grid container spacing={2}>
-        {/* Timing Metrics */}
         <Grid item xs={12} sm={6} md={4}>
           <Card>
             <CardContent>
@@ -75,8 +74,6 @@ export default function MetricsOverview({
             </CardContent>
           </Card>
         </Grid>
-
-        {/* Throughput */}
         <Grid item xs={12} sm={6} md={4}>
           <Card>
             <CardContent>
@@ -102,8 +99,6 @@ export default function MetricsOverview({
             </CardContent>
           </Card>
         </Grid>
-
-        {/* Memory */}
         <Grid item xs={12} sm={6} md={4}>
           <Card>
             <CardContent>
@@ -116,8 +111,6 @@ export default function MetricsOverview({
             </CardContent>
           </Card>
         </Grid>
-
-        {/* Order Counts */}
         <Grid item xs={12} sm={6} md={4}>
           <Card>
             <CardContent>

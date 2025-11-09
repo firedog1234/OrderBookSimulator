@@ -88,13 +88,9 @@ export default function Dashboard({
           </Button>
         )}
       </Box>
-
-      {/* Performance Comparison Table - Full Width */}
       <Box sx={{ mb: 4 }}>
         <PerformanceComparison rbTree={rbTree} skipList={skipList} />
       </Box>
-
-      {/* Throughput and Memory Charts - Full Width */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} md={6}>
           <ThroughputChart rbTree={rbTree} skipList={skipList} />
@@ -104,9 +100,7 @@ export default function Dashboard({
         </Grid>
       </Grid>
 
-      {/* Side-by-side comparison layout */}
       <Grid container spacing={3}>
-        {/* Red-Black Tree Column */}
         <Grid item xs={12} md={6}>
           {rbTree && (
             <Box>
@@ -120,8 +114,6 @@ export default function Dashboard({
             </Box>
           )}
         </Grid>
-
-        {/* Skip List Column */}
         <Grid item xs={12} md={6}>
           {skipList && (
             <Box>

@@ -51,10 +51,10 @@ export default function MemoryUsageChart({
                   value: "Memory",
                   angle: -90,
                   position: "left",
-                  offset: 10,
+                  offset: 0,
                 }}
                 tickFormatter={(value: number) => formatMemory(value)}
-                width={80}
+                width={90}
               />
               <Tooltip formatter={(value: number) => formatMemory(value)} />
               <Legend />

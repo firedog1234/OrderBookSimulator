@@ -51,12 +51,12 @@ export default function ThroughputChart({
                   value: "Throughput (orders/sec)",
                   angle: -90,
                   position: "left",
-                  offset: 10,
+                  offset: 0,
                 }}
                 tickFormatter={(value: number) =>
                   formatNumber(Math.round(value))
                 }
-                width={80}
+                width={100}
               />
               <Tooltip formatter={(value: number) => formatThroughput(value)} />
               <Legend />

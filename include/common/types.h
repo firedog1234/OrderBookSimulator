@@ -92,7 +92,6 @@ inline crow::json::wvalue to_json(const Metrics &metrics) {
 
   return json;
 }
-
 /*
 Note that here that the enum values BID, ASK, ADD, ... etc etc will not be
 initialized to 1,2,3... im p sure that you have to reinterperet cast it to an

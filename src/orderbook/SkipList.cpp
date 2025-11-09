@@ -7,11 +7,11 @@
 
 //node constructor
 //key: the price level
-//price: deque of quantities at that price
+//orders: deque of Orders at that price
+//totalQuantity: total quantity at that price level
 //forward: vector of pointers to nodes at each skip list level
-SkipList::Node::Node(int lvl, double price, const std::deque<double> &qtys) {
-    key = price;
-    Price = qtys;
+SkipList::Node::Node(int lvl, double price, const std::deque<Order> &orders, int64_t totalQty)
+    : key(price), orders(orders), totalQuantity(totalQty) {
     forward.resize(lvl, nullptr);
 }
 
@@ -25,7 +25,7 @@ SkipList::Node::Node(int lvl, double price, const std::deque<double> &qtys) {
 SkipList::SkipList(int maxLevel, double p)
     : maxLevel(maxLevel), p(p), level(0), nodeCount(0),
       rng(std::mt19937(std::random_device{}())) {
-    head = new Node(maxLevel, -std::numeric_limits<double>::infinity(), std::deque<double>{});
+    head = new Node(maxLevel, -std::numeric_limits<double>::infinity(), std::deque<Order>{}, 0);
 }
 
 //destructor
@@ -35,7 +35,7 @@ SkipList::~SkipList() {
     head = nullptr;
 }
 
-//deletes all nodes and reesets the skiplist’s count and level
+//deletes all nodes and resets the skiplist’s count and level
 void SkipList::freeList()
 {
     Node* current = head->forward[0];
@@ -53,7 +53,8 @@ size_t SkipList::getMemoryUsage() const {
     size_t memory = sizeof(*this);
     Node* current = head->forward[0];
     while (current) {
-        memory += sizeof(Node)+current->forward.capacity()*sizeof(Node*)+current->Price.size()*sizeof(double);
+        memory += sizeof(Node) + current->forward.capacity() * sizeof(Node*) + current->orders.size() * sizeof(Order);
+        memory += sizeof(int64_t); // for totalQuantity
         current = current->forward[0];
     }
     return memory;
@@ -85,9 +86,10 @@ bool SkipList::insert(const PriceLevel &pl)
     current = current->forward[0];
 
     if (current && current->key == pl.priceLevel) {
-        // Append quantities to the deque
-        for (double qty : pl.Price) {
-            current->Price.push_back(qty);
+        // Append orders to the deque and update totalQuantity
+        for (const Order& order : pl.orders) {
+            current->orders.push_back(order);
+            current->totalQuantity += order.quantity;
         }
         return true;
     } else {
@@ -98,7 +100,7 @@ bool SkipList::insert(const PriceLevel &pl)
             level = newLevel - 1;
         }
 
-        Node* newNode = new Node(newLevel, pl.priceLevel, pl.Price);
+        Node* newNode = new Node(newLevel, pl.priceLevel, pl.orders, pl.totalQuantity);
         for (int i = 0; i < newLevel; i++) {
             newNode->forward[i] = update[i]->forward[i];
             update[i]->forward[i] = newNode;
@@ -121,20 +123,22 @@ bool SkipList::remove(double price, int quantity)
     }
     current = current->forward[0];
 
-    if (current && current->key == price) { //removes from deque
+    if (current && current->key == price) { //removes quantity from orders in FIFO manner
         int qtyToRemove = quantity;
-        while (qtyToRemove > 0 && !current->Price.empty()) {
-            double frontQty = current->Price.front();
-            if (frontQty <= qtyToRemove) {
-                qtyToRemove -= static_cast<int>(frontQty);
-                current->Price.pop_front();
+        while (qtyToRemove > 0 && !current->orders.empty()) {
+            Order &frontOrder = current->orders.front();
+            if (frontOrder.quantity <= qtyToRemove) {
+                qtyToRemove -= frontOrder.quantity;
+                current->totalQuantity -= frontOrder.quantity;
+                current->orders.pop_front();
             } else {
-                current->Price.front() = frontQty - qtyToRemove;
+                frontOrder.quantity -= qtyToRemove;
+                current->totalQuantity -= qtyToRemove;
                 qtyToRemove = 0;
             }
         }
 
-        if (current->Price.empty()) { //removes node if deque is empty
+        if (current->orders.empty()) { //removes node if no orders remain
             for (int i = 0; i <= level; i++) {
                 if (update[i]->forward[i] != current) break;
                 update[i]->forward[i] = current->forward[i];
@@ -158,7 +162,7 @@ PriceLevel* SkipList::find(double price) const{
     }
     current = current->forward[0];
     if (current && current->key == price) {
-        return new PriceLevel{current->key, current->Price};
+        return new PriceLevel{current->key, current->orders, current->totalQuantity};
     }
     return nullptr;
 }
@@ -168,7 +172,7 @@ std::vector<PriceLevel> SkipList::topN(size_t n) const{
     std::vector<PriceLevel> result;
     Node* current = head->forward[0];
     while (current && result.size() < n) {
-        result.push_back(PriceLevel{current->key, current->Price});
+        result.push_back(PriceLevel{current->key, current->orders, current->totalQuantity});
         current = current->forward[0];
     }
     return result;
@@ -177,7 +181,7 @@ std::vector<PriceLevel> SkipList::topN(size_t n) const{
 void OrderBookManager::processOrder(const Order &o){
     auto realStart = std::chrono::high_resolution_clock::now();
     if (o.type == OrderType::ADD) {
-        PriceLevel pl{ o.price, std::deque<double>{static_cast<double>(o.quantity)} };
+        PriceLevel pl{ o.price, std::deque<Order>{o}, static_cast<int64_t>(o.quantity) };
         auto start = std::chrono::high_resolution_clock::now();
         if (o.side == Side::BID) {
             bids_.insert(pl);
@@ -205,8 +209,16 @@ void OrderBookManager::processOrder(const Order &o){
         auto start = std::chrono::high_resolution_clock::now();
         SkipList* sl = (o.side == Side::BID) ? &bids_ : &asks_;
         if (PriceLevel* pl = sl->find(o.price)) {
-            pl->Price.clear();
-            pl->Price.push_back(static_cast<double>(o.quantity));
+            // Clear existing orders and add one order with new quantity
+            pl->orders.clear();
+            pl->orders.push_back(o);
+            pl->totalQuantity = o.quantity;
+
+            // To persist changes in skip list, remove old node and insert new node
+            sl->remove(o.price, std::numeric_limits<int>::max());
+            sl->insert(*pl);
+
+            delete pl;
         }
         auto end = std::chrono::high_resolution_clock::now();
         double microsec = std::chrono::duration<double, std::micro>(end - start).count();

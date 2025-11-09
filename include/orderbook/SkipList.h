@@ -9,9 +9,10 @@ class SkipList {
 public:
     struct Node {
         double key; // price
-        std::deque<double> Price; //deque of quantities for this price level
+        std::deque<Order> orders; //deque of orders for this price level
+        int64_t totalQuantity;
         std::vector<Node*> forward;
-        Node(int level, double k, const std::deque<double>& price_deque);
+        Node(int level, double price, const std::deque<Order>& ordersDeque, int64_t totalQty);
     };
     SkipList(int maxLevel = 16, double p = 0.5);
     ~SkipList();

@@ -371,8 +371,10 @@ void RBTree::remove(RBNode *z) {
     transplant(z, z->left);
   } else {
     RBNode *succ = getInorderSuccessor(z);
+
+      
     if (!succ)
-      return; // defensive
+      return;
 
     y = succ;
     yOriginalIsRed = y->isRed;
